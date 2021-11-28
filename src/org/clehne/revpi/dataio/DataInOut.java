@@ -1,6 +1,7 @@
 package org.clehne.revpi.dataio;
 
 //Taken from: https://github.com/entropia/libsocket-can-java
+//and prepared for https://github.com/clehne/librevpi-dio-java
 
 import java.io.Closeable;
 import java.io.FileNotFoundException;
@@ -19,6 +20,47 @@ import java.util.Set;
 //import org.apache.log4j.Logger;
 
 public final class DataInOut implements Closeable {
+
+	public static final short PICONTROL_LED_A1_MASK	    	= (short) 0x0003;
+	public static final short PICONTROL_LED_A1_GREEN	    = (short) 0x0001;
+	public static final short PICONTROL_LED_A1_RED          = (short) 0x0002;
+	
+	public static final short PICONTROL_LED_A2_MASK	    	= (short) 0x000c;
+	public static final short PICONTROL_LED_A2_GREEN        = (short) 0x0004;
+	public static final short PICONTROL_LED_A2_RED          = (short) 0x0008;
+
+	/** Revpi Connect and Flat */
+	public static final short PICONTROL_LED_A3_MASK	    	= (short) 0x0030;
+	/** Revpi Connect and Flat */
+	public static final short PICONTROL_LED_A3_GREEN        = (short) 0x0010;
+	/** Revpi Connect and Flat */
+	public static final short PICONTROL_LED_A3_RED          = (short) 0x0020;
+
+	
+	/** RevPi Connect only */
+	public static final short PICONTROL_X2_DOUT             = (short) 0x0040;
+	/** RevPi Connect only */
+	public static final short PICONTROL_WD_TRIGGER          = (short) 0x0080;
+
+
+	/** Revpi Flat only */
+	public static final short PICONTROL_LED_A4_MASK	    	= (short) 0x00c0;
+	/** Revpi Flat only */
+	public static final short PICONTROL_LED_A4_GREEN        = (short) 0x0040;
+	/** Revpi Flat only */
+	public static final short PICONTROL_LED_A4_RED          = (short) 0x0080;
+	
+	/** Revpi Flat only */
+	public static final short PICONTROL_LED_A5_MASK	    	= (short) 0x0300;
+	/** Revpi Flat only */
+	public static final short PICONTROL_LED_A5_GREEN        = (short) 0x0100;
+	/** Revpi Flat only */
+	public static final short PICONTROL_LED_A5_RED          = (short) 0x0200;
+
+
+
+
+
 //	private static Logger log = Logger.getLogger(DataInOut.class);
 	static {
 //		System.out.println("Trying to load native library revpi.dataio");
@@ -90,10 +132,10 @@ public final class DataInOut implements Closeable {
 	 * @param value  true or false  
 	 * @throws IOException in case of any error
 	 */
-	public void setDataOut(int _channel, boolean _value) throws IOException {
-		int val = _setDataOut(_fd, _channel, (_value?1:0));
+	public void setDataOut(String _channelAlias, boolean _value) throws IOException {
+		int val = _setDataOut(_fd, _channelAlias, (_value?1:0));
 		if(val < 0) {
-			throw new IOException("Error setting Data OUT " + _channel + " retCode " + val);
+			throw new IOException("Error setting Data OUT " + _channelAlias + " retCode " + val);
 		}
 	}
 	
@@ -103,10 +145,10 @@ public final class DataInOut implements Closeable {
 	 * @return true or false 
 	 * @throws IOException in case of any error
 	 */
-	public boolean getDataOut(int _channel) throws IOException {
-		int val = _getDataOut(_fd, _channel);
+	public boolean getDataOut(String _channelAlias) throws IOException {
+		int val = _getDataOut(_fd, _channelAlias);
 		if(val < 0) {
-			throw new IOException("Error reading Data OUT " + _channel + " retCode " + val);
+			throw new IOException("Error reading Data OUT " + _channelAlias + " retCode " + val);
 		}
 		return val == 1;
 	}
@@ -117,10 +159,10 @@ public final class DataInOut implements Closeable {
 	 * @return true or false 
 	 * @throws IOException in case of any error
 	 */
-	public boolean getDataIn(int _channel) throws IOException {
-		int val = _getDataIn(_fd, _channel);
+	public boolean getDataIn(String _channelAlias) throws IOException {
+		int val = _getDataIn(_fd, _channelAlias);
 		if(val < 0) {
-			throw new IOException("Error reading Data IN " + _channel + " retCode " + val);
+			throw new IOException("Error reading Data IN " + _channelAlias + " retCode " + val);
 		}
 		return val == 1;
 	}
@@ -130,10 +172,7 @@ public final class DataInOut implements Closeable {
 
 	private static native void _close(final int fd) throws IOException;
 
-	private static native int _setDataOut(final int fd, int channel, int value);
-	private static native int _getDataOut(final int fd, int channel);
-	private static native int _getDataIn(final int fd, int channel);
-
-
-
+	private static native int _setDataOut(final int fd, String channelAlias, int value);
+	private static native int _getDataOut(final int fd, String channelAlias);
+	private static native int _getDataIn(final int fd, String channelAlias);
 }

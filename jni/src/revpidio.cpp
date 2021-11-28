@@ -219,45 +219,38 @@ JNIEXPORT void Java_org_clehne_revpi_dataio_DataInOut__1close
 
 
 JNIEXPORT jint JNICALL Java_org_clehne_revpi_dataio_DataInOut__1setDataOut
-	(JNIEnv *env, jclass obj, jint fd, jint channel, jint value) {
-	char channelName[20];
+	(JNIEnv *env, jclass obj, jint fd, jstring channelAliasObj, jint value) {
+    
 	int ret;
-	if(channel < 1 || channel > 16){
-		return -1;
-	}
-	if(value < 0 || value > 1){
-		return -2;
-	}
-	snprintf(channelName, 20, "O_%d", channel);
-	ret = writeVariableValue(fd, (char*)channelName, value);
+    const char *channelName;
+    
+    channelName = env->GetStringUTFChars( channelAliasObj, NULL ) ;
+	ret = writeVariableValue(fd, (char*)channelName, ((value > 0)?true:false));
+    env->ReleaseStringUTFChars(channelAliasObj, channelName);
+    
 	return ret;
 }
 
 JNIEXPORT jint JNICALL Java_org_clehne_revpi_dataio_DataInOut__1getDataOut
-	(JNIEnv *env, jclass obj, jint fd, jint channel) {
+	(JNIEnv *env, jclass obj, jint fd, jstring channelAliasObj) {
 
-	char channelName[20];
 	int ret;
-	if(channel < 1 || channel > 16){
-		return -1;
-	}
-	snprintf(channelName, 20, "O_%d", channel);
+    const char *channelName;
+    
+    channelName = env->GetStringUTFChars( channelAliasObj, NULL ) ;
 	ret = readVariableValue(fd, (char*)channelName);
+    env->ReleaseStringUTFChars(channelAliasObj, channelName);
 	return ret;
 }
 
 JNIEXPORT jint JNICALL Java_org_clehne_revpi_dataio_DataInOut__1getDataIn
-	(JNIEnv *env, jclass obj, jint fd, jint channel) {
+	(JNIEnv *env, jclass obj, jint fd, jstring channelAliasObj) {
 
-	char channelName[20];
 	int ret;
-	if(channel < 1 || channel > 16){
-		return -1;
-	}
-	snprintf(channelName, 20, "I_%d", channel);
-	ret = readVariableValue(fd, (char*)channelName);
+    const char *channelName;
+
+    channelName = env->GetStringUTFChars( channelAliasObj, NULL ) ;
+    ret = readVariableValue(fd, (char*)channelName);
+    env->ReleaseStringUTFChars(channelAliasObj, channelName);
 	return ret;
 }
-
-
-

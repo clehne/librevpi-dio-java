@@ -38,7 +38,9 @@ JNI_DIR=jni/generated
 JNI_CLASSES=org.clehne.revpi.dataio.DataInOut
 JAVAC_FLAGS=-g -Xlint:all
 CXXFLAGS=-I./include -I./include/picontrol -I./jni/src -I./jni/src/picontrol -I./jni/generated\
-$(JAVA_INCLUDES) -fPIC
+ -O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions \
+ -fstack-protector --param=ssp-buffer-size=4 -fPIC -Wno-unused-parameter \
+ -pedantic -D_REENTRANT -D_GNU_SOURCE $(JAVA_INCLUDES) 
 SONAME=jni_revpi_dio
 LDFLAGS=-Wl,-soname,$(SONAME)
 REMOTE=169.254.23.187#192.168.29.250#

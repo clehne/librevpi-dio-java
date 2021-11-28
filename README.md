@@ -13,6 +13,8 @@ These instructions will get you a copy of the project on your rev pi and build t
 * cd librevpi-dio-java  
 * make clean
 * make all
+# do the following export before check
+#export LD_LIBRARY_PATH=<path>/librevpi-dio-java/lib/:$LD_LIBRARY_PATH
 * make check
 
 ## Deployment
