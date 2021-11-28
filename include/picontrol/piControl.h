@@ -49,7 +49,7 @@
 #include <linux/ioctl.h>
 #endif //WIN32
 
-//#include <stdint.h>
+#include <stdint.h>
 
 /******************************************************************************/
 /*********************************  Types  ************************************/
@@ -110,6 +110,7 @@
 #define  KB_CONFIG_START                    _IO(KB_IOC_MAGIC, 25 )  // for download of configuration to Master Gateway: restart IO communication
 #define  KB_SET_OUTPUT_WATCHDOG             _IO(KB_IOC_MAGIC, 26 )  // activate a watchdog for this handle. If write is not called for a given period all outputs are set to 0
 #define  KB_SET_POS                         _IO(KB_IOC_MAGIC, 27 )  // set the f_pos, the unsigned int * is used to interpret the pos value
+#define  KB_AIO_CALIBRATE                   _IO(KB_IOC_MAGIC, 28 )
 
 #define  KB_WAIT_FOR_EVENT                  _IO(KB_IOC_MAGIC, 50 )  // wait for an event. This call is normally blocking
 #define  KB_EVENT_RESET                     1       // piControl was reset, reload configuration
@@ -146,6 +147,10 @@ typedef struct SDeviceInfoStr
 typedef struct SEntryInfoStr
 {
     uint8_t     i8uAddress;             // Address of module in current configuration
+#define ENTRY_INFO_TYPE_INPUT		1
+#define ENTRY_INFO_TYPE_OUTPUT		2
+#define ENTRY_INFO_TYPE_MEMORY		3
+#define ENTRY_INFO_TYPE_MASK		0x7F
     uint8_t     i8uType;                // 1=input, 2=output, 3=memory, 4=config, 0=undefined, + 0x80 if exported
     uint16_t    i16uIndex;              // index of I/O value for this module
     uint16_t    i16uBitLength;          // length of value in bits
@@ -176,6 +181,18 @@ typedef struct SDIOResetCounterStr
     uint16_t    i16uBitfield;           // bitfield, if bit n is 1, reset counter/encoder on input n
 } SDIOResetCounter;
 
+struct pictl_calibrate {
+	/* Address of module in current configuration */
+	unsigned char	address;
+	/* bitfield: mode */
+	unsigned char	mode;
+	/* channels to calibrate */
+	unsigned char	channels;
+	/* point in lookupTable */
+	unsigned char	x_val;
+	signed short	y_val;
+};
+
 #define CONFIG_DATA_SIZE 256
 
 typedef struct SConfigDataStr
@@ -201,15 +218,21 @@ typedef struct SConfigDataStr
 #define PICONTROL_STATUS_RIGHT_GATEWAY                  0x20
 #define PICONTROL_STATUS_X2_DIN                         0x40    // RevPi Connect only
 
-#define PICONTROL_LED_A1_GREEN                          0x01
-#define PICONTROL_LED_A1_RED                            0x02
-#define PICONTROL_LED_A2_GREEN                          0x04
-#define PICONTROL_LED_A2_RED                            0x08
-
-#define PICONTROL_LED_A3_GREEN                          0x10    // RevPi Connect only
-#define PICONTROL_LED_A3_RED                            0x20    // RevPi Connect only
-#define PICONTROL_X2_DOUT                               0x40    // RevPi Connect only
-#define PICONTROL_WD_TRIGGER                            0x80    // RevPi Connect only
+#define PICONTROL_LED_A1_GREEN                          0x0001
+#define PICONTROL_LED_A1_RED                            0x0002
+#define PICONTROL_LED_A2_GREEN                          0x0004
+#define PICONTROL_LED_A2_RED                            0x0008
+/* Revpi Connect and Flat */
+#define PICONTROL_LED_A3_GREEN                          0x0010
+#define PICONTROL_LED_A3_RED                            0x0020
+/* RevPi Connect only */
+#define PICONTROL_X2_DOUT                               0x0040
+#define PICONTROL_WD_TRIGGER                            0x0080
+/* Revpi Flat only */
+#define PICONTROL_LED_A4_GREEN                          0x0040
+#define PICONTROL_LED_A4_RED                            0x0080
+#define PICONTROL_LED_A5_GREEN                          0x0100
+#define PICONTROL_LED_A5_RED                            0x0200
 
 
 /******************************************************************************/
