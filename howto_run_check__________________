@@ -1,0 +1,2 @@
+export LD_LIBRARY_PATH=/home/pi/projects/2021.11/librevpi-dio-java/lib/:$LD_LIBRARY_PATH
+make check

@@ -90,7 +90,7 @@ public class DataInOutTest {
     	try (final DataInOut dio = new DataInOut()) {
     	    System.out.println("");
     	    for (int i = 1; i < 17; i++) {
-        	    System.out.println("Result from getDataIn(" + DATA_IN[i-1] + "): " + dio.getDataIn( DATA_IN[i-1] ) );
+        	    System.out.println("Result from getDataIn(" + DATA_IN[i-1] + "): " + dio.getDigital( DATA_IN[i-1] ) );
 			}
     	}
     }
@@ -100,7 +100,7 @@ public class DataInOutTest {
     	try (final DataInOut dio = new DataInOut()) {
     	    System.out.println("");
     	    for (int i = 1; i < 17; i++) {
-        	    System.out.println("Result from getDataOut(" + DATA_OUT[i-1] + "): " + dio.getDataOut( DATA_OUT[i-1]) );
+        	    System.out.println("Result from getDataOut(" + DATA_OUT[i-1] + "): " + dio.getDigital( DATA_OUT[i-1]) );
 			}
     	}
     }
@@ -112,7 +112,7 @@ public class DataInOutTest {
     	    System.out.println("");
     	    for (int i = 1; i < 17; i++) {
         	    System.out.println("setDataOut(" + DATA_OUT[i-1] + ", 1)");
-        	    dio.setDataOut(DATA_OUT[i-1], true);
+        	    dio.setDigital(DATA_OUT[i-1], true);
 			}
     	    System.out.println("pause");
     	    try {
@@ -120,11 +120,33 @@ public class DataInOutTest {
 			} catch (InterruptedException e) {}
     	    for (int i = 1; i < 17; i++) {
         	    System.out.println("setDataOut(" + DATA_OUT[i-1] + ", 0)");
-        	    dio.setDataOut(DATA_OUT[i-1], false);
+        	    dio.setDigital(DATA_OUT[i-1], false);
 			}
     	}
     }
 
     
+    @Test
+    public void testRevPiLED() throws IOException {
+    	try (final DataInOut dio = new DataInOut()) {
+    	    System.out.println("");
+            System.out.println("Result from RevPiLED: " + dio.getValue( "RevPiLED" ) );
+    	}catch(Exception e){
+		System.out.println("Got exception " + e.getMessage());
+		e.printStackTrace();
+	}
+    }
+
+       @Test
+       public void testRevPiLEDoff() throws IOException {
+          try (final DataInOut dio = new DataInOut()) {
+               System.out.println("");
+               dio.setValue( "RevPiLED", 0 );
+          }catch(Exception e){
+               System.out.println("Got exception " + e.getMessage());
+               e.printStackTrace();
+          }
+      }
+
     
 }

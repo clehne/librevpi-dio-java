@@ -93,6 +93,56 @@ void logthis(std::string msg) {
 
 }
 
+/***********************************************************************************/
+/*!
+ * @brief Get Processdata
+ *
+ * Gets Processdata from a specific position
+ *
+ * @param[in]   Offset
+ * @param[in]   Length
+ * @param[out]  pData
+ *
+ * @return Number of Bytes read or error if negative
+ *
+ ************************************************************************************/
+int piControlRead(jint fd, uint32_t Offset, uint32_t Length, uint8_t * pData)
+{
+      int BytesRead = 0;
+
+      /* seek */
+      if (lseek(fd, Offset, SEEK_SET) < 0) {
+         return -errno;
+      }
+
+      /* read */
+      BytesRead = read(fd, pData, Length);
+      if (BytesRead < 0) {
+             return -errno;
+      }
+
+      return BytesRead;
+}
+
+
+int piControlWrite(jint fd, uint32_t Offset, uint32_t Length, uint8_t * pData)
+{
+     int BytesWritten = 0;
+
+     /* seek */
+     if (lseek(fd, Offset, SEEK_SET) < 0) {
+            return -errno;
+     }
+
+     /* Write */
+     BytesWritten = write(fd, pData, Length);
+     if (BytesWritten < 0) {
+           return -errno;
+     }
+
+     return BytesWritten;
+}
+
 
 int piControlGetBitValue(jint fd, SPIValue * pSpiValue)
 {
@@ -139,6 +189,8 @@ int readVariableValue(jint fd, char *pszVariableName)
 	int rc;
 	SPIVariable sPiVariable;
 	SPIValue sPIValue;
+	uint8_t i8uValue = 0;
+	uint16_t i16uValue = 0;
 
 	strncpy(sPiVariable.strVarName, pszVariableName, sizeof(sPiVariable.strVarName));
 	rc = piControlGetVariableInfo(fd, &sPiVariable);
@@ -155,7 +207,25 @@ int readVariableValue(jint fd, char *pszVariableName)
 		}else {
 			return sPIValue.i8uValue;
 		}
+
 	}
+	if (sPiVariable.i16uLength == 8) {
+		rc = piControlRead(fd, sPiVariable.i16uAddress, 1, (uint8_t *) & i8uValue);
+		if (rc < 0){
+	                return rc;
+	        }else {
+	                return i8uValue;
+		}
+
+	}
+	if (sPiVariable.i16uLength == 16) {
+		rc = piControlRead(fd, sPiVariable.i16uAddress, 2, (uint8_t *) & i16uValue);
+		if (rc < 0){
+                       return rc;
+                }else {
+                        return i16uValue;
+		}
+	} //TODO add 32
 	return -99;
 }
 
@@ -165,6 +235,8 @@ int writeVariableValue(jint fd, char *pszVariableName, uint32_t i32uValue)
 	int rc;
 	SPIVariable sPiVariable;
 	SPIValue sPIValue;
+        uint8_t i8uValue = 0;
+        uint16_t i16uValue = 0;
 
 	strncpy(sPiVariable.strVarName, pszVariableName, sizeof(sPiVariable.strVarName));
 	rc = piControlGetVariableInfo(fd, &sPiVariable);
@@ -177,11 +249,29 @@ int writeVariableValue(jint fd, char *pszVariableName, uint32_t i32uValue)
 		sPIValue.i8uBit = sPiVariable.i8uBit;
 		sPIValue.i8uValue = i32uValue;
 		rc = piControlSetBitValue(fd, &sPIValue);
-		if (rc < 0)
+		if (rc < 0){
 			return -2;
-		else{
+		}else{
 			return 0;
 		}
+	}
+	if (sPiVariable.i16uLength == 8) {
+		i8uValue = i32uValue;
+		rc = piControlWrite(fd, sPiVariable.i16uAddress, 1, (uint8_t *) & i8uValue);
+		if (rc < 0){
+			return -2;
+		}else{
+			return 0;
+		}
+	}
+	if (sPiVariable.i16uLength == 16) {
+                i16uValue = i32uValue;
+		rc = piControlWrite(fd, sPiVariable.i16uAddress, 2, (uint8_t *) & i16uValue);
+		if (rc < 0){
+	                return -2;
+                }else{
+                        return 0;
+                }
 	}
 	return -3;
 }
@@ -205,7 +295,7 @@ JNIEXPORT jint JNICALL Java_org_clehne_revpi_dataio_DataInOut__1openDIO(
 }
 
 
-JNIEXPORT void Java_org_clehne_revpi_dataio_DataInOut__1close
+JNIEXPORT void Java_org_clehne_revpi_dataio_DataInOut__1closeDIO
 (JNIEnv *env, jclass obj, jint fd)
 {
     /* open handle if needed */
@@ -218,20 +308,20 @@ JNIEXPORT void Java_org_clehne_revpi_dataio_DataInOut__1close
 }
 
 
-JNIEXPORT jint JNICALL Java_org_clehne_revpi_dataio_DataInOut__1setDataOut
+JNIEXPORT jint JNICALL Java_org_clehne_revpi_dataio_DataInOut__1setValueDIO
 	(JNIEnv *env, jclass obj, jint fd, jstring channelAliasObj, jint value) {
     
 	int ret;
     const char *channelName;
     
     channelName = env->GetStringUTFChars( channelAliasObj, NULL ) ;
-	ret = writeVariableValue(fd, (char*)channelName, ((value > 0)?true:false));
+	ret = writeVariableValue(fd, (char*)channelName, value);
     env->ReleaseStringUTFChars(channelAliasObj, channelName);
     
 	return ret;
 }
 
-JNIEXPORT jint JNICALL Java_org_clehne_revpi_dataio_DataInOut__1getDataOut
+JNIEXPORT jint JNICALL Java_org_clehne_revpi_dataio_DataInOut__1getValueDIO
 	(JNIEnv *env, jclass obj, jint fd, jstring channelAliasObj) {
 
 	int ret;
@@ -243,14 +333,3 @@ JNIEXPORT jint JNICALL Java_org_clehne_revpi_dataio_DataInOut__1getDataOut
 	return ret;
 }
 
-JNIEXPORT jint JNICALL Java_org_clehne_revpi_dataio_DataInOut__1getDataIn
-	(JNIEnv *env, jclass obj, jint fd, jstring channelAliasObj) {
-
-	int ret;
-    const char *channelName;
-
-    channelName = env->GetStringUTFChars( channelAliasObj, NULL ) ;
-    ret = readVariableValue(fd, (char*)channelName);
-    env->ReleaseStringUTFChars(channelAliasObj, channelName);
-	return ret;
-}
