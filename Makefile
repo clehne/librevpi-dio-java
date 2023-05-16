@@ -21,7 +21,6 @@ endif
 JAVA_INCLUDES=-I$(JAVA_HOME)/include/linux -I$(JAVA_HOME)/include
 JAVA=$(JAVA_HOME)/bin/java
 JAVAC=$(JAVA_HOME)/bin/javac
-JAVAH=$(JAVA_HOME)/bin/javah
 JAR=$(JAVA_HOME)/bin/jar
 JAVA_SRC:=$(shell find src -type f -and -name '*.java')
 JAVA_TEST_SRC:=$(shell find src.test -type f -and -name '*.java')
@@ -72,8 +71,7 @@ stamps/compile-test: stamps/compile-src $(JAVA_TEST_SRC)
 		@touch $@
 
 stamps/generate-jni-h: stamps/compile-src
-		$(JAVAH) -jni -d $(JNI_DIR) -classpath $(JAVA_DEST) \
-                $(JNI_CLASSES)
+		$(JAVAC) -h $(JNI_DIR) -classpath ./src/org/clehne/revpi/dataio -sourcepath src src/org/clehne/revpi/dataio/DataInOut.java
 		@touch $@
 
 stamps/compile-jni: stamps/generate-jni-h $(JNI_SRC)
